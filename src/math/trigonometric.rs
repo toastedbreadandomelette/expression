@@ -1,6 +1,6 @@
 use crate::math::func_traits::VariableFunction;
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum TrigonometricFunction {
     Sine,
     Cosine,
@@ -46,26 +46,40 @@ macro_rules! cosec {
     };
 }
 
+impl TrigonometricFunction {
+    pub fn to_string(&self) -> String {
+        match self {
+            Self::Sine => "sin",
+            Self::Cosine => "cos",
+            Self::Tangent => "tan",
+            Self::Cotangent => "cot",
+            Self::Secant => "sec",
+            Self::Cosecant => "cosec",
+        }
+        .to_string()
+    }
+}
+
 impl VariableFunction for TrigonometricFunction {
     fn evaluate(&self, x: f64) -> f64 {
         match self {
-            TrigonometricFunction::Sine => x.sin(),
-            TrigonometricFunction::Cosine => x.cos(),
-            TrigonometricFunction::Tangent => x.tan(),
-            TrigonometricFunction::Cotangent => 1.0 / x.tan(),
-            TrigonometricFunction::Secant => 1.0 / x.cos(),
-            TrigonometricFunction::Cosecant => 1.0 / x.sin(),
+            Self::Sine => x.sin(),
+            Self::Cosine => x.cos(),
+            Self::Tangent => x.tan(),
+            Self::Cotangent => 1.0 / x.tan(),
+            Self::Secant => 1.0 / x.cos(),
+            Self::Cosecant => 1.0 / x.sin(),
         }
     }
 
     fn derivative(&self) -> Self {
         match self {
-            TrigonometricFunction::Sine => cos!(),
-            TrigonometricFunction::Cosine => sin!(),
-            TrigonometricFunction::Tangent => cot!(),
-            TrigonometricFunction::Cotangent => tan!(),
-            TrigonometricFunction::Secant => sec!(),
-            TrigonometricFunction::Cosecant => cosec!(),
+            Self::Sine => cos!(),
+            Self::Cosine => sin!(),
+            Self::Tangent => cot!(),
+            Self::Cotangent => tan!(),
+            Self::Secant => sec!(),
+            Self::Cosecant => cosec!(),
         }
     }
 }

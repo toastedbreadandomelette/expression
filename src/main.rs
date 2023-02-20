@@ -1,7 +1,7 @@
 mod math;
 
 use crate::math::{
-    expression::Expression, expression::ExpressionType, func_traits::VariableFunction,
+    expression::Expression, expression_type::ExpressionType, func_traits::VariableFunction,
     function_type::FunctionType, polynomial::Polynomial, trigonometric::TrigonometricFunction,
 };
 
@@ -15,8 +15,15 @@ fn main() {
         },
         Expression {
             function: FunctionType::Trigonometric(TrigonometricFunction::Cosine),
-            input: ExpressionType::Polynomial(2.5 * x!() + 2.5),
+            input: ExpressionType::Polynomial(2.5 * (x!() * &x!()) + 2.5),
         },
     ]);
-    println!("{} {}", expr.evaluate(c), v.sin() + (2.5 * c + 2.5).cos());
+    println!(
+        "{}\n{}\n{}\n{} {}",
+        expr.evaluate(c),
+        expr,
+        expr.derivative(),
+        expr.derivative().evaluate(c),
+        (20.0_f64).sin()
+    );
 }

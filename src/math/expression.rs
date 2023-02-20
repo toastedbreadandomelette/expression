@@ -1,20 +1,20 @@
+use std::fmt::Display;
+
+use super::{
+    expression_type::ExpressionType, func_traits::VariableFunction, polynomial::Polynomial,
+};
 use crate::math::function_type::FunctionType;
 
-use super::{func_traits::VariableFunction, polynomial::Polynomial};
-
-#[derive(Clone)]
-pub enum ExpressionType {
-    Functions(Vec<Expression>),
-    Constant(f64),
-    Polynomial(Polynomial<f64>),
-    MultipliedFunction(Vec<Expression>),
-    DivFunction(Box<Expression>, Box<Expression>),
-}
-
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub function: FunctionType,
     pub input: ExpressionType,
+}
+
+impl Display for Expression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(format!("{}({})", self.function.to_string(), self.input.to_string()).as_str())
+    }
 }
 
 impl Expression {
@@ -31,6 +31,10 @@ impl Expression {
             input: ExpressionType::Functions(expr.clone()),
         }
     }
+
+    pub fn is_constant(&self) -> bool {
+        self.input.is_constant()
+    }
 }
 
 impl VariableFunction for Expression {
@@ -43,8 +47,6 @@ impl VariableFunction for Expression {
                 value
                     .into_iter()
                     .map(|expr| expr.evaluate(input_value))
-                    .collect::<Vec<f64>>()
-                    .into_iter()
                     .reduce(|prev, curr| prev + curr)
                     .unwrap(),
             ),
@@ -52,8 +54,6 @@ impl VariableFunction for Expression {
                 value
                     .into_iter()
                     .map(|expr| expr.evaluate(input_value))
-                    .collect::<Vec<f64>>()
-                    .into_iter()
                     .reduce(|prev, curr| prev * curr)
                     .unwrap(),
             ),
@@ -67,43 +67,58 @@ impl VariableFunction for Expression {
     }
 
     fn derivative(&self) -> Self {
+        // Derivative depends on what the input for the function is:
+        // If the input is constucted independent expression on it's own,
+        // we convert it into a multiplied function
+        // else, we return as constant
         match &self.input {
             ExpressionType::Constant(_value) => Expression {
-                function: FunctionType::Constant,
-                input: ExpressionType::Constant(0.0),
+                function: self.function.derivative(),
+                input: self.input.derivative(),
             },
-            ExpressionType::MultipliedFunction(ref value) => {
-                let mut derivative: Vec<Expression> = Vec::new();
-                for index in 0..value.len() {
-                    let mut der: Vec<Expression> = Vec::new();
-                    for i in 0..value.len() {
-                        if index == i {
-                            der.push(value[index].derivative());
-                        } else {
-                            der.push(value[index].clone());
-                        }
-                    }
-
-                    derivative.push({
-                        Expression {
-                            function: value[index].function.clone(),
-                            input: ExpressionType::MultipliedFunction(der),
-                        }
-                    })
-                }
-
-                return Expression {
-                    function: self.function.clone(),
-                    input: ExpressionType::Functions(derivative),
-                };
-            }
+            ExpressionType::MultipliedFunction(ref value) => Expression {
+                function: FunctionType::Constant,
+                input: ExpressionType::Functions(
+                    value
+                        .iter()
+                        .filter(|c| !c.is_constant())
+                        .map(|c| {
+                            ExpressionType::MultipliedFunction(
+                                [
+                                    value
+                                        .iter()
+                                        .filter(|p| **p != *c)
+                                        .map(|p| p.clone())
+                                        .collect::<Vec<Expression>>(),
+                                    vec![c.derivative()],
+                                ]
+                                .concat(),
+                            )
+                        })
+                        .map(|der| Expression {
+                            function: FunctionType::Constant,
+                            input: der,
+                        })
+                        .collect::<Vec<Expression>>(),
+                ),
+            },
             ExpressionType::Functions(ref value) => Expression {
                 function: FunctionType::Constant,
-                input: ExpressionType::Constant(1.0),
+                input: ExpressionType::Functions(
+                    value
+                        .iter()
+                        .filter(|c| !c.is_constant())
+                        .map(|c| c.derivative())
+                        .collect::<Vec<Expression>>(),
+                ),
             },
             ExpressionType::DivFunction(num, den) => Expression {
-                function: FunctionType::Constant,
+                function: self.function.derivative(),
                 input: ExpressionType::Constant(1.0),
+            },
+            ExpressionType::Polynomial(ref value) => Expression {
+                function: self.function.derivative(),
+                input: ExpressionType::Polynomial(value.derivative()),
             },
             _ => Expression {
                 function: FunctionType::Constant,

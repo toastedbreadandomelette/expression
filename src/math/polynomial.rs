@@ -37,7 +37,7 @@ macro_rules! x {
     };
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Polynomial<T: PolynomialOperationTypes>
 where
     T: Copy,
@@ -46,7 +46,7 @@ where
     pub deg: u32,
 }
 
-impl<'b, T: PolynomialOperationTypes> Polynomial<T>
+impl<'b, T: PolynomialOperationTypes + fmt::Display + Copy> Polynomial<T>
 where
     T: Mul<Output = T>
         + Add<Output = T>
@@ -105,14 +105,16 @@ where
         }
     }
 
-    pub fn n_derivative(&self, ith: u32) -> Self {
-        Self {
-            poly: (ith..self.poly.len() as u32)
-                .into_iter()
-                .map(|c| -> T { T::value_from(c).unwrap() * self.poly[c as usize] })
-                .collect::<Vec<T>>(),
-            deg: self.deg - ith,
-        }
+    pub fn to_string(&self) -> String {
+        self.poly
+            .iter()
+            .rev()
+            .enumerate()
+            .map(|(index, val)| -> String {
+                format!("{}x^({})", val.to_string(), self.poly.len() - index - 1)
+            })
+            .collect::<Vec<String>>()
+            .join(" + ")
     }
 }
 
