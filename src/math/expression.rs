@@ -28,7 +28,7 @@ impl Expression {
     pub fn new_from(expr: &Vec<Expression>) -> Expression {
         Expression {
             function: FunctionType::Constant,
-            input: ExpressionType::Functions(expr.clone()),
+            input: ExpressionType::MultipliedFunction(expr.clone()),
         }
     }
 
@@ -117,8 +117,17 @@ impl VariableFunction for Expression {
                 input: ExpressionType::Constant(1.0),
             },
             ExpressionType::Polynomial(ref value) => Expression {
-                function: self.function.derivative(),
-                input: ExpressionType::Polynomial(value.derivative()),
+                function: FunctionType::Constant,
+                input: ExpressionType::MultipliedFunction(vec![
+                    Expression {
+                        function: self.function.clone(),
+                        input: self.input.derivative(),
+                    },
+                    Expression {
+                        function: self.function.derivative(),
+                        input: self.input.clone(),
+                    },
+                ]),
             },
             _ => Expression {
                 function: FunctionType::Constant,
