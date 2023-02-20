@@ -20,14 +20,14 @@ impl Display for ExpressionType {
                 .iter()
                 .map(|c| c.to_string())
                 .collect::<Vec<String>>()
-                .join("+"),
+                .join(" + "),
             Self::Constant(val) => val.to_string(),
-            Self::Polynomial(ref val) => val.to_string(),
+            Self::Polynomial(ref val) => format!("({})", val.to_string()),
             Self::MultipliedFunction(ref value) => value
                 .iter()
                 .map(|c| c.to_string())
                 .collect::<Vec<String>>()
-                .join("*"),
+                .join(" * "),
             Self::DivFunction(ref num, ref den) => {
                 format!("({}) / ({})", num.to_string(), den.to_string())
             }

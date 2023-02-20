@@ -7,7 +7,7 @@ use Vec;
 // use crate::complex::Complex;
 use conv::prelude::*;
 use itertools::Itertools;
-use num_traits::pow::Pow;
+use num_traits::{pow::Pow, One};
 use std::default::Default;
 
 pub trait PolynomialOperationTypes {}
@@ -118,7 +118,7 @@ where
     }
 }
 
-impl<'b, T: fmt::Display + Copy> Display for Polynomial<T>
+impl<'b, T: fmt::Display + Copy + ValueFrom<T> + One + PartialEq> Display for Polynomial<T>
 where
     T: PolynomialOperationTypes,
 {
@@ -129,7 +129,15 @@ where
             .rev()
             .enumerate()
             .map(|(index, val)| -> String {
-                format!("{}x^({})", val.to_string(), self.poly.len() - index - 1)
+                format!(
+                    "{}x^({})",
+                    if *val != T::one() {
+                        val.to_string()
+                    } else {
+                        "".to_string()
+                    },
+                    self.poly.len() - index - 1
+                )
             })
             .collect::<Vec<String>>()
             .join(" + ");

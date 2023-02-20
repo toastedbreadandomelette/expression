@@ -13,7 +13,12 @@ pub struct Expression {
 
 impl Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(format!("{}({})", self.function.to_string(), self.input.to_string()).as_str())
+        match self.function {
+            FunctionType::Constant => f.write_str(format!("{}", self.input.to_string()).as_str()),
+            _ => f.write_str(
+                format!("{}({})", self.function.to_string(), self.input.to_string()).as_str(),
+            ),
+        }
     }
 }
 
