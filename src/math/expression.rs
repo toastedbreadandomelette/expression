@@ -120,7 +120,7 @@ impl VariableFunction for Expression {
                 function: FunctionType::Constant,
                 input: ExpressionType::MultipliedFunction(vec![
                     Expression {
-                        function: self.function.clone(),
+                        function: FunctionType::Constant,
                         input: self.input.derivative(),
                     },
                     Expression {
