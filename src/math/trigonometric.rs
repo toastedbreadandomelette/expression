@@ -102,6 +102,7 @@ impl VariableFunction for TrigonometricFunction {
             Self::Cotangent => neg!(composite!(cosec!(), cosec!())),
             Self::Secant => composite!(sec!(), tan!()),
             Self::Cosecant => neg!(composite!(cosec!(), cot!())),
+            Self::Negative(ref value) => neg!(value.derivative()),
             _ => cos!()
         }
     }

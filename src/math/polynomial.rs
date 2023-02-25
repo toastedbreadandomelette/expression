@@ -37,6 +37,16 @@ macro_rules! x {
     };
 }
 
+#[macro_export]
+macro_rules! pn {
+    (+$($coef:exprx^($exp:expr))) => {
+        Polynomial {
+            poly: vec![0.0, 1.0],
+            deg: 1,
+        }
+    },
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Polynomial<T: PolynomialOperationTypes>
 where

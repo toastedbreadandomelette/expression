@@ -95,7 +95,7 @@ impl VariableFunction for ExpressionType {
                         )
                     })
                     .map(|der| Expression {
-                        function: FunctionType::Constant,
+                        function: FunctionType::None,
                         input: der,
                     })
                     .collect::<Vec<Expression>>(),

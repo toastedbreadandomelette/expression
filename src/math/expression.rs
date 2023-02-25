@@ -14,7 +14,7 @@ pub struct Expression {
 impl Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.function {
-            FunctionType::Constant => f.write_str(format!("{}", self.input.to_string()).as_str()),
+            FunctionType::None => f.write_str(format!("{}", self.input.to_string()).as_str()),
             _ => f.write_str(
                 format!("{}({})", self.function.to_string(), self.input.to_string()).as_str(),
             ),
@@ -25,14 +25,14 @@ impl Display for Expression {
 impl Expression {
     pub fn new() -> Expression {
         Expression {
-            function: FunctionType::Constant,
+            function: FunctionType::None,
             input: ExpressionType::Constant(1.0),
         }
     }
 
     pub fn new_from(expr: &Vec<Expression>) -> Expression {
         Expression {
-            function: FunctionType::Constant,
+            function: FunctionType::None,
             input: ExpressionType::MultipliedExpressions(expr.clone()),
         }
     }
@@ -83,7 +83,7 @@ impl VariableFunction for Expression {
                 input: self.input.derivative(),
             },
             ExpressionType::MultipliedExpressions(ref value) => Expression {
-                function: FunctionType::Constant,
+                function: FunctionType::None,
                 input: ExpressionType::Expressions(
                     value
                         .iter()
@@ -102,14 +102,14 @@ impl VariableFunction for Expression {
                             )
                         })
                         .map(|der| Expression {
-                            function: FunctionType::Constant,
+                            function: FunctionType::None,
                             input: der,
                         })
                         .collect::<Vec<Expression>>(),
                 ),
             },
             ExpressionType::Expressions(ref value) => Expression {
-                function: FunctionType::Constant,
+                function: FunctionType::None,
                 input: ExpressionType::Expressions(
                     value
                         .iter()
@@ -123,10 +123,10 @@ impl VariableFunction for Expression {
                 input: ExpressionType::Constant(1.0),
             },
             ExpressionType::Polynomial(ref value) => Expression {
-                function: FunctionType::Constant,
+                function: FunctionType::None,
                 input: ExpressionType::MultipliedExpressions(vec![
                     Expression {
-                        function: FunctionType::Constant,
+                        function: FunctionType::None,
                         input: self.input.derivative(),
                     },
                     Expression {
@@ -136,7 +136,7 @@ impl VariableFunction for Expression {
                 ]),
             },
             _ => Expression {
-                function: FunctionType::Constant,
+                function: FunctionType::None,
                 input: ExpressionType::Constant(1.0),
             },
         }
