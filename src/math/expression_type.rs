@@ -6,29 +6,29 @@ use super::{expression::Expression, func_traits::VariableFunction, polynomial::P
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionType {
-    Functions(Vec<Expression>),
+    Expressions(Vec<Expression>),
     Constant(f64),
     Polynomial(Polynomial<f64>),
-    MultipliedFunction(Vec<Expression>),
-    DivFunction(Box<Expression>, Box<Expression>),
+    MultipliedExpressions(Vec<Expression>),
+    DividedExpressions(Box<Expression>, Box<Expression>),
 }
 
 impl Display for ExpressionType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let out = match *self {
-            Self::Functions(ref value) => value
+            Self::Expressions(ref value) => value
                 .iter()
                 .map(|c| c.to_string())
                 .collect::<Vec<String>>()
                 .join(" + "),
             Self::Constant(val) => val.to_string(),
             Self::Polynomial(ref val) => format!("({})", val.to_string()),
-            Self::MultipliedFunction(ref value) => value
+            Self::MultipliedExpressions(ref value) => value
                 .iter()
                 .map(|c| c.to_string())
                 .collect::<Vec<String>>()
                 .join(" * "),
-            Self::DivFunction(ref num, ref den) => {
+            Self::DividedExpressions(ref num, ref den) => {
                 format!("({}) / ({})", num.to_string(), den.to_string())
             }
         };
@@ -40,9 +40,9 @@ impl ExpressionType {
     pub fn is_constant(&self) -> bool {
         match &self {
             Self::Constant(val) => true,
-            Self::DivFunction(num, den) => num.is_constant() && den.is_constant(),
-            Self::MultipliedFunction(ref value) => value.iter().all(|c| c.is_constant()),
-            Self::Functions(ref value) => value.iter().all(|c| c.is_constant()),
+            Self::DividedExpressions(num, den) => num.is_constant() && den.is_constant(),
+            Self::MultipliedExpressions(ref value) => value.iter().all(|c| c.is_constant()),
+            Self::Expressions(ref value) => value.iter().all(|c| c.is_constant()),
             Self::Polynomial(ref value) => value.deg == 0,
         }
     }
@@ -52,14 +52,14 @@ impl VariableFunction for ExpressionType {
     fn evaluate(&self, x: f64) -> f64 {
         match &self {
             Self::Constant(val) => *val,
-            Self::DivFunction(num, den) => num.evaluate(x) / den.evaluate(x),
+            Self::DividedExpressions(num, den) => num.evaluate(x) / den.evaluate(x),
             Self::Polynomial(ref value) => value.evaluate(x),
-            Self::MultipliedFunction(ref value) => value
+            Self::MultipliedExpressions(ref value) => value
                 .iter()
                 .map(|c| c.evaluate(x))
                 .reduce(|p, c| p * c)
                 .unwrap(),
-            Self::Functions(ref value) => value
+            Self::Expressions(ref value) => value
                 .iter()
                 .map(|c| c.evaluate(x))
                 .reduce(|p, c| p + c)
@@ -70,19 +70,19 @@ impl VariableFunction for ExpressionType {
     fn derivative(&self) -> Self {
         match &self {
             Self::Constant(ref value) => Self::Constant(0.0),
-            Self::Functions(ref value) => Self::Functions(
+            Self::Expressions(ref value) => Self::Expressions(
                 value
                     .iter()
                     .filter(|c| !c.is_constant())
                     .map(|c| c.derivative())
                     .collect::<Vec<Expression>>(),
             ),
-            Self::MultipliedFunction(ref value) => Self::Functions(
+            Self::MultipliedExpressions(ref value) => Self::Expressions(
                 value
                     .iter()
                     .filter(|c| !c.is_constant())
                     .map(|c| {
-                        Self::MultipliedFunction(
+                        Self::MultipliedExpressions(
                             [
                                 value
                                     .iter()
@@ -101,7 +101,7 @@ impl VariableFunction for ExpressionType {
                     .collect::<Vec<Expression>>(),
             ),
             Self::Polynomial(ref value) => Self::Polynomial(value.derivative()),
-            // Self::DivFunction(ref num, ref den) => Self::DivFunction(d, ())
+            // Self::DividedExpressions(ref num, ref den) => Self::DividedExpressions(d, ())
             _ => Self::Constant(0.0),
         }
     }

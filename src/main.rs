@@ -15,7 +15,7 @@ fn main() {
         },
         Expression {
             function: FunctionType::Trigonometric(TrigonometricFunction::Cosine),
-            input: ExpressionType::Polynomial(2.5 * (x!() * &x!()) + 2.5),
+            input: ExpressionType::Polynomial(2.5 * (x!() * &x!()) - 2.5),
         },
     ]);
     println!(
@@ -24,6 +24,6 @@ fn main() {
         expr,
         expr.derivative(),
         expr.derivative().evaluate(c),
-        ((20.0_f64).cos() * ((2.5 * 16.0 + 2.5) as f64).sin())
+        (((-2.5 + 2.5*16.0) as f64).cos() * (4_f64).cos()) + ((4_f64).sin() * 20.0_f64 * -((2.5 * 16.0 - 2.5) as f64).sin())
     );
 }

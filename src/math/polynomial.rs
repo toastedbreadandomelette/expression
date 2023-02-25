@@ -7,7 +7,7 @@ use Vec;
 // use crate::complex::Complex;
 use conv::prelude::*;
 use itertools::Itertools;
-use num_traits::{pow::Pow, One};
+use num_traits::{pow::Pow, One, Zero};
 use std::default::Default;
 
 pub trait PolynomialOperationTypes {}
@@ -46,7 +46,7 @@ where
     pub deg: u32,
 }
 
-impl<'b, T: PolynomialOperationTypes + fmt::Display + Copy> Polynomial<T>
+impl<'b, T: PolynomialOperationTypes + fmt::Display + Copy + num_traits::Zero + std::cmp::PartialEq> Polynomial<T>
 where
     T: Mul<Output = T>
         + Add<Output = T>
@@ -108,36 +108,35 @@ where
     pub fn to_string(&self) -> String {
         self.poly
             .iter()
-            .rev()
             .enumerate()
+            .filter(|(index, x)| T::value_from(0).unwrap() != **x)
             .map(|(index, val)| -> String {
-                format!("{}x^({})", val.to_string(), self.poly.len() - index - 1)
+                match index {
+                    0 => format!("{}", val),
+                    1 => format!("{}x", val),
+                    _ => format!("{}x^({})", val, index)
+                }
             })
             .collect::<Vec<String>>()
             .join(" + ")
     }
 }
 
-impl<'b, T: fmt::Display + Copy + ValueFrom<T> + One + PartialEq> Display for Polynomial<T>
+impl<'b, T: fmt::Display + Copy + ValueFrom<T> + Zero + PartialEq> Display for Polynomial<T>
 where
-    T: PolynomialOperationTypes,
+    T: PolynomialOperationTypes + conv::ValueFrom<T> + conv::ValueInto<T>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let str_output = self
             .poly
             .iter()
-            .rev()
             .enumerate()
             .map(|(index, val)| -> String {
-                format!(
-                    "{}x^({})",
-                    if *val != T::one() {
-                        val.to_string()
-                    } else {
-                        "".to_string()
-                    },
-                    self.poly.len() - index - 1
-                )
+                match index {
+                    0 => format!("{}", val),
+                    1 => format!("{}x", val),
+                    _ => format!("{}x^({})", val, self.poly.len() - index - 1)
+                }
             })
             .collect::<Vec<String>>()
             .join(" + ");
@@ -349,6 +348,39 @@ where
             } else {
                 other.deg
             },
+        }
+    }
+}
+
+impl<T: Copy + Sub<Output = T> + Neg<Output = T> + SubAssign> Sub<T> for Polynomial<T>
+where
+    T: PolynomialOperationTypes,
+{
+    type Output = Polynomial<T>;
+    fn sub(self, rhs: T) -> Polynomial<T> {
+        let mut p = Polynomial {
+            poly: self.poly.clone(),
+            deg: self.deg,
+        };
+        p.poly[0] -= rhs.value_into().unwrap();
+        p
+    }
+}
+
+
+impl<T: Copy + Div<Output = T>> Div<T> for Polynomial<T>
+where
+    T: PolynomialOperationTypes,
+{
+    type Output = Polynomial<T>;
+    fn div(self, rhs: T) -> Polynomial<T> {
+        Polynomial {
+            poly: self
+                .poly
+                .iter()
+                .map(|c| *c / rhs)
+                .collect::<Vec<T>>(),
+            deg: self.deg,
         }
     }
 }

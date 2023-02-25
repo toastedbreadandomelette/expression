@@ -33,7 +33,7 @@ impl Expression {
     pub fn new_from(expr: &Vec<Expression>) -> Expression {
         Expression {
             function: FunctionType::Constant,
-            input: ExpressionType::MultipliedFunction(expr.clone()),
+            input: ExpressionType::MultipliedExpressions(expr.clone()),
         }
     }
 
@@ -48,21 +48,21 @@ impl VariableFunction for Expression {
 
         match &self.input {
             ExpressionType::Constant(value) => self.function.evaluate(*value),
-            ExpressionType::Functions(value) => self.function.evaluate(
+            ExpressionType::Expressions(value) => self.function.evaluate(
                 value
                     .into_iter()
                     .map(|expr| expr.evaluate(input_value))
                     .reduce(|prev, curr| prev + curr)
                     .unwrap(),
             ),
-            ExpressionType::MultipliedFunction(value) => self.function.evaluate(
+            ExpressionType::MultipliedExpressions(value) => self.function.evaluate(
                 value
                     .into_iter()
                     .map(|expr| expr.evaluate(input_value))
                     .reduce(|prev, curr| prev * curr)
                     .unwrap(),
             ),
-            ExpressionType::DivFunction(num, den) => {
+            ExpressionType::DividedExpressions(num, den) => {
                 self.function.evaluate(num.evaluate(x) / den.evaluate(x))
             }
             ExpressionType::Polynomial(value) => {
@@ -73,7 +73,8 @@ impl VariableFunction for Expression {
 
     fn derivative(&self) -> Self {
         // Derivative depends on what the input for the function is:
-        // If the input is constucted independent expression on it's own,
+        // If the input is constucted that contains 
+        // independent expression,
         // we convert it into a multiplied function
         // else, we return as constant
         match &self.input {
@@ -81,14 +82,14 @@ impl VariableFunction for Expression {
                 function: self.function.derivative(),
                 input: self.input.derivative(),
             },
-            ExpressionType::MultipliedFunction(ref value) => Expression {
+            ExpressionType::MultipliedExpressions(ref value) => Expression {
                 function: FunctionType::Constant,
-                input: ExpressionType::Functions(
+                input: ExpressionType::Expressions(
                     value
                         .iter()
                         .filter(|c| !c.is_constant())
                         .map(|c| {
-                            ExpressionType::MultipliedFunction(
+                            ExpressionType::MultipliedExpressions(
                                 [
                                     value
                                         .iter()
@@ -107,9 +108,9 @@ impl VariableFunction for Expression {
                         .collect::<Vec<Expression>>(),
                 ),
             },
-            ExpressionType::Functions(ref value) => Expression {
+            ExpressionType::Expressions(ref value) => Expression {
                 function: FunctionType::Constant,
-                input: ExpressionType::Functions(
+                input: ExpressionType::Expressions(
                     value
                         .iter()
                         .filter(|c| !c.is_constant())
@@ -117,13 +118,13 @@ impl VariableFunction for Expression {
                         .collect::<Vec<Expression>>(),
                 ),
             },
-            ExpressionType::DivFunction(num, den) => Expression {
+            ExpressionType::DividedExpressions(num, den) => Expression {
                 function: self.function.derivative(),
                 input: ExpressionType::Constant(1.0),
             },
             ExpressionType::Polynomial(ref value) => Expression {
                 function: FunctionType::Constant,
-                input: ExpressionType::MultipliedFunction(vec![
+                input: ExpressionType::MultipliedExpressions(vec![
                     Expression {
                         function: FunctionType::Constant,
                         input: self.input.derivative(),

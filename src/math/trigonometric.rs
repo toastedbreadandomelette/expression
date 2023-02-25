@@ -1,6 +1,7 @@
 use crate::math::func_traits::VariableFunction;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+/// Function involving normal trigonometry
+#[derive(Debug, Clone, PartialEq)]
 pub enum TrigonometricFunction {
     Sine,
     Cosine,
@@ -8,6 +9,14 @@ pub enum TrigonometricFunction {
     Cotangent,
     Secant,
     Cosecant,
+    Composite(Vec<TrigonometricFunction>),
+    Negative(Box<TrigonometricFunction>)
+}
+
+macro_rules! composite {
+    ($($e:expr),*) => {{
+        TrigonometricFunction::Composite(vec![$($e),*])
+    }}
 }
 
 macro_rules! sin {
@@ -46,17 +55,24 @@ macro_rules! cosec {
     };
 }
 
+macro_rules! neg {
+    ($e:expr) => {
+        TrigonometricFunction::Negative(Box::new($e))
+    };
+}
+
 impl TrigonometricFunction {
     pub fn to_string(&self) -> String {
         match self {
-            Self::Sine => "sin",
-            Self::Cosine => "cos",
-            Self::Tangent => "tan",
-            Self::Cotangent => "cot",
-            Self::Secant => "sec",
-            Self::Cosecant => "cosec",
+            Self::Sine => "sin".to_string(),
+            Self::Cosine => "cos".to_string(),
+            Self::Tangent => "tan".to_string(),
+            Self::Cotangent => "cot".to_string(),
+            Self::Secant => "sec".to_string(),
+            Self::Cosecant => "cosec".to_string(),
+            Self::Composite(ref value) => "".to_string(),
+            Self::Negative(ref value) => format!("-{}", value.to_string())
         }
-        .to_string()
     }
 }
 
@@ -69,17 +85,24 @@ impl VariableFunction for TrigonometricFunction {
             Self::Cotangent => 1.0 / x.tan(),
             Self::Secant => 1.0 / x.cos(),
             Self::Cosecant => 1.0 / x.sin(),
+            Self::Composite(ref value) => value
+                .iter()
+                .map(|f| f.evaluate(x))
+                .reduce(|v, c| v * c)
+                .unwrap(),
+            Self::Negative(ref value) => -value.evaluate(x)
         }
     }
 
     fn derivative(&self) -> Self {
         match self {
             Self::Sine => cos!(),
-            Self::Cosine => sin!(),
-            Self::Tangent => cot!(),
-            Self::Cotangent => tan!(),
-            Self::Secant => sec!(),
-            Self::Cosecant => cosec!(),
+            Self::Cosine => neg!(sin!()),
+            Self::Tangent => composite!(sec!(), sec!()),
+            Self::Cotangent => neg!(composite!(cosec!(), cosec!())),
+            Self::Secant => composite!(sec!(), tan!()),
+            Self::Cosecant => neg!(composite!(cosec!(), cot!())),
+            _ => cos!()
         }
     }
 }
