@@ -39,7 +39,7 @@ impl Display for ExpressionType {
 impl ExpressionType {
     pub fn is_constant(&self) -> bool {
         match &self {
-            Self::Constant(val) => true,
+            Self::Constant(_val) => true,
             Self::DividedExpressions(num, den) => num.is_constant() && den.is_constant(),
             Self::MultipliedExpressions(ref value) => value.iter().all(|c| c.is_constant()),
             Self::Expressions(ref value) => value.iter().all(|c| c.is_constant()),
@@ -69,7 +69,7 @@ impl VariableFunction for ExpressionType {
 
     fn derivative(&self) -> Self {
         match &self {
-            Self::Constant(ref value) => Self::Constant(0.0),
+            Self::Constant(ref _value) => Self::Constant(0.0),
             Self::Expressions(ref value) => Self::Expressions(
                 value
                     .iter()

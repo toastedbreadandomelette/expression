@@ -73,7 +73,7 @@ impl VariableFunction for Expression {
 
     fn derivative(&self) -> Self {
         // Derivative depends on what the input for the function is:
-        // If the input is constucted that contains 
+        // If the input is constucted that contains
         // independent expression,
         // we convert it into a multiplied function
         // else, we return as constant
@@ -118,9 +118,40 @@ impl VariableFunction for Expression {
                         .collect::<Vec<Expression>>(),
                 ),
             },
-            ExpressionType::DividedExpressions(num, den) => Expression {
-                function: self.function.derivative(),
-                input: ExpressionType::Constant(1.0),
+            ExpressionType::DividedExpressions(ref num, ref den) => Expression {
+                function: FunctionType::None,
+                input: ExpressionType::DividedExpressions(
+                    Box::new(Expression {
+                        function: FunctionType::None,
+                        input: ExpressionType::Expressions(vec![
+                            Expression {
+                                function: FunctionType::None,
+                                input: ExpressionType::MultipliedExpressions(vec![
+                                    num.derivative(),
+                                    *den.clone(),
+                                ]),
+                            },
+                            Expression {
+                                function: FunctionType::None,
+                                input: ExpressionType::MultipliedExpressions(vec![
+                                    den.derivative(),
+                                    *num.clone(),
+                                    Expression {
+                                        function: FunctionType::None,
+                                        input: ExpressionType::Constant(-1.0f64),
+                                    },
+                                ]),
+                            },
+                        ]),
+                    }),
+                    Box::new(Expression {
+                        function: FunctionType::None,
+                        input: ExpressionType::MultipliedExpressions(vec![
+                            *den.clone(),
+                            *den.clone(),
+                        ]),
+                    }),
+                ),
             },
             ExpressionType::Polynomial(ref value) => Expression {
                 function: FunctionType::None,

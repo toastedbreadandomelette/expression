@@ -7,7 +7,7 @@ use Vec;
 // use crate::complex::Complex;
 use conv::prelude::*;
 use itertools::Itertools;
-use num_traits::{pow::Pow, One, Zero};
+use num_traits::{pow::Pow, Zero};
 use std::default::Default;
 
 pub trait PolynomialOperationTypes {}
@@ -37,16 +37,6 @@ macro_rules! x {
     };
 }
 
-#[macro_export]
-macro_rules! pn {
-    (+$($coef:exprx^($exp:expr))) => {
-        Polynomial {
-            poly: vec![0.0, 1.0],
-            deg: 1,
-        }
-    },
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Polynomial<T: PolynomialOperationTypes>
 where
@@ -56,7 +46,10 @@ where
     pub deg: u32,
 }
 
-impl<'b, T: PolynomialOperationTypes + fmt::Display + Copy + num_traits::Zero + std::cmp::PartialEq> Polynomial<T>
+impl<
+        'b,
+        T: PolynomialOperationTypes + fmt::Display + Copy + num_traits::Zero + std::cmp::PartialEq,
+    > Polynomial<T>
 where
     T: Mul<Output = T>
         + Add<Output = T>
@@ -124,7 +117,7 @@ where
                 match index {
                     0 => format!("{}", val),
                     1 => format!("{}x", val),
-                    _ => format!("{}x^({})", val, index)
+                    _ => format!("{}x^({})", val, index),
                 }
             })
             .collect::<Vec<String>>()
@@ -145,7 +138,7 @@ where
                 match index {
                     0 => format!("{}", val),
                     1 => format!("{}x", val),
-                    _ => format!("{}x^({})", val, self.poly.len() - index - 1)
+                    _ => format!("{}x^({})", val, self.poly.len() - index - 1),
                 }
             })
             .collect::<Vec<String>>()
@@ -377,7 +370,6 @@ where
     }
 }
 
-
 impl<T: Copy + Div<Output = T>> Div<T> for Polynomial<T>
 where
     T: PolynomialOperationTypes,
@@ -385,11 +377,7 @@ where
     type Output = Polynomial<T>;
     fn div(self, rhs: T) -> Polynomial<T> {
         Polynomial {
-            poly: self
-                .poly
-                .iter()
-                .map(|c| *c / rhs)
-                .collect::<Vec<T>>(),
+            poly: self.poly.iter().map(|c| *c / rhs).collect::<Vec<T>>(),
             deg: self.deg,
         }
     }
