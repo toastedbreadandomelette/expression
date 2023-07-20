@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use super::{
-    expression_type::ExpressionType, func_traits::VariableFunction, polynomial::Polynomial,
+    expression_type::ExpressionType, func_traits::VariableFunction,
 };
 use crate::math::function_type::FunctionType;
 
@@ -39,6 +39,10 @@ impl Expression {
 
     pub fn is_constant(&self) -> bool {
         self.input.is_constant()
+    }
+
+    pub fn simplify(&self) {
+        
     }
 }
 
@@ -153,7 +157,7 @@ impl VariableFunction for Expression {
                     }),
                 ),
             },
-            ExpressionType::Polynomial(ref value) => Expression {
+            ExpressionType::Polynomial(_) => Expression {
                 function: FunctionType::None,
                 input: ExpressionType::MultipliedExpressions(vec![
                     Expression {
@@ -165,10 +169,6 @@ impl VariableFunction for Expression {
                         input: self.input.clone(),
                     },
                 ]),
-            },
-            _ => Expression {
-                function: FunctionType::None,
-                input: ExpressionType::Constant(1.0),
             },
         }
         // Expression {

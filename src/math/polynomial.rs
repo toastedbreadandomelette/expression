@@ -29,6 +29,14 @@ impl PolynomialOperationTypes for f64 {}
 
 #[macro_export]
 macro_rules! x {
+    ($number:expr) => {{
+        let mut poly = vec![0.0; $number];
+        poly.push(1.0);
+        Polynomial {
+            poly,
+            deg: $number
+        }
+    }};
     () => {
         Polynomial {
             poly: vec![0.0, 1.0],
@@ -112,7 +120,7 @@ where
         self.poly
             .iter()
             .enumerate()
-            .filter(|(index, x)| T::value_from(0).unwrap() != **x)
+            .filter(|(_index, x)| T::value_from(0).unwrap() != **x)
             .map(|(index, val)| -> String {
                 match index {
                     0 => format!("{}", val),
@@ -125,9 +133,9 @@ where
     }
 }
 
-impl<'b, T: fmt::Display + Copy + ValueFrom<T> + Zero + PartialEq> Display for Polynomial<T>
+impl<'b, T> Display for Polynomial<T>
 where
-    T: PolynomialOperationTypes + conv::ValueFrom<T> + conv::ValueInto<T>,
+    T: PolynomialOperationTypes + conv::ValueFrom<T> + conv::ValueInto<T> + fmt::Display + Copy + Zero + PartialEq,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let str_output = self
@@ -147,9 +155,37 @@ where
     }
 }
 
-impl<'a, 'b, T: Copy + Add<Output = T>> Add<&'b Polynomial<T>> for &'a Polynomial<T>
+impl<'a, T> Add<Polynomial<T>> for  Polynomial<T>
 where
-    T: PolynomialOperationTypes,
+    T: PolynomialOperationTypes + Copy + Add<Output = T>,
+{
+    type Output = Polynomial<T>;
+    fn add(self, other: Polynomial<T>) -> Polynomial<T> {
+        Polynomial {
+            poly: self
+                .poly
+                .iter()
+                .zip_longest(other.poly.iter())
+                .map(|c| -> T {
+                    match c {
+                        itertools::EitherOrBoth::Both(l, r) => *l + *r,
+                        itertools::EitherOrBoth::Left(l) => *l,
+                        itertools::EitherOrBoth::Right(r) => *r,
+                    }
+                })
+                .collect::<Vec<T>>(),
+            deg: if self.deg > other.deg {
+                self.deg
+            } else {
+                other.deg
+            },
+        }
+    }
+}
+
+impl<'a, 'b, T> Add<&'b Polynomial<T>> for &'a Polynomial<T>
+where
+    T: PolynomialOperationTypes + Copy + Add<Output = T>,
 {
     type Output = Polynomial<T>;
     fn add(self, other: &'b Polynomial<T>) -> Polynomial<T> {

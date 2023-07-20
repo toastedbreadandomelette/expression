@@ -70,8 +70,29 @@ impl TrigonometricFunction {
             Self::Cotangent => "cot".to_string(),
             Self::Secant => "sec".to_string(),
             Self::Cosecant => "cosec".to_string(),
-            Self::Composite(ref value) => "".to_string(),
+            Self::Composite(_) => "".to_string(),
             Self::Negative(ref value) => format!("-{}", value.to_string())
+        }
+    }
+
+    fn flatten_composite(&self) -> Self {
+        match self {
+            Self::Composite(ref comp) => {
+                let mut new_composite: Vec<TrigonometricFunction> = Vec::new();
+                comp.iter().for_each(|item| {
+                    item.flatten_composite();
+                    match item {
+                        Self::Composite(another_comp) => {
+                            for val in another_comp {
+                                new_composite.push(val.clone());
+                            }
+                        }
+                        _ => { }
+                    }
+                });
+                Self::Composite(new_composite)
+            }
+            _ => { self.clone() }
         }
     }
 }
